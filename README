@@ -1,3 +1,8 @@
+== Second Commit
+
+First part of homework 2 has been added, movies list can be sorted and the 
+selected column changes to yellow.
+
 == Welcome to Rails
 
 Rails is a web-application framework that includes everything needed to create
