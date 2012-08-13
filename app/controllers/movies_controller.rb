@@ -31,14 +31,29 @@ class MoviesController < ApplicationController
     #Reading :sort from session hash if it exists and redirecting if needed
     #This should be reviewed because sort may not come from a refresh button
     #push
-    unless session[:sort]==nil then
-      if params[:sort]==nil then
-        params_string << "\&sort=" << session[:sort]
-        self_redirect = true
-        else
-        session[:sort] = params[:sort]
-      end
-    end
+    #TODO : Correct, the problem with this logic is that if both params
+    #change, you get an infinite loop
+#    unless session[:sort]==nil then
+#      if params[:sort]==nil then
+#        params_string << "\&sort=" << session[:sort]
+#        self_redirect = true
+#        else
+#        session[:sort] = params[:sort]
+#      end
+#    else
+#      if params[:sort] != nil then
+#        session[:sort] = params [:sort]
+#      end
+#    end
+#
+#    if params[:sort] == nil then
+#      if session[:sort] != nil then
+#        params_string << "\&sort=" << session[:sort]
+#        self_redirect = true
+#      end
+#    else
+#      session[:sort] = params[:sort]
+#    end
 
     #redirecting if needed
     if self_redirect then
