@@ -16,17 +16,31 @@ class MoviesController < ApplicationController
     self_redirect = false
     #Reading :params from session hash if it exists and redirecting if needed
     #debugger
-    unless session[:ratings]==nil then
-      if params[:ratings]==nil then
-        #debugger
-        session[:ratings].each {|hash_key,value| params_string << %q{&ratings[} << hash_key << %q{]=} << value }
-        #debugger
+    if params[:ratings] != nil then
+      #If there are ratings on address bar they should prevail
+      session[:ratings] = params[:ratings]
+    else
+      #If they are no ratings on address bar we see session
+      if session[:ratings] == nil then
+        session[:ratings].each{|hash_key| params_string << %q{&ratings[} << hash_key << %q{]=1}}
         self_redirect = true
-        #redirect_to movies_path << params_string
-      else
-        session[:ratings] = params[:ratings]
       end
     end
+    
+#    unless session[:ratings]==nil then
+#      #if session :ratings has values this code will be executed
+#      if params[:ratings]==nil then
+#        #if there isnÂt :ratings in the address bar this will ocur
+#        #debugger
+#        session[:ratings].each {|hash_key,value| params_string << %q{&ratings[} << hash_key << %q{]=} << value }
+#        #debugger
+#        self_redirect = true
+#        #redirect_to movies_path << params_string
+#      end
+#    else
+#        session[:ratings] = params[:ratings]
+#    end
+   
 
     #Reading :sort from session hash if it exists and redirecting if needed
     #This should be reviewed because sort may not come from a refresh button
@@ -46,14 +60,15 @@ class MoviesController < ApplicationController
 #      end
 #    end
 #
-#    if params[:sort] == nil then
-#      if session[:sort] != nil then
-#        params_string << "\&sort=" << session[:sort]
-#        self_redirect = true
-#      end
-#    else
-#      session[:sort] = params[:sort]
-#    end
+    if params[:sort] == nil then
+      if session[:sort] != nil then
+        params_string << "\&sort=" << session[:sort]
+        self_redirect = true
+      end
+    else
+      params_string<<"\Ãsort=none"
+      session[:sort] = params[:sort]
+    end
 
     #redirecting if needed
     if self_redirect then
