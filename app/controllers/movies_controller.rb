@@ -10,62 +10,7 @@ class MoviesController < ApplicationController
     #Display rating checkboxes logic
     @all_ratings = Movie.get_ratings
     @selected_ratings = Hash.new
-
-    unless params[:redir] and params[:commit] != "refresh" then
-      #If there is a params redir indication, then no session verification should be issued
-      session_parameters = Hash.new
-      params_string = String.new
-      ratings_redirect = false
-      sort_redirect = false
-
-      #Check for ratings on params
-      if params[:ratings] then
-        #If there are ratings on params, we put them in session
-        session[:ratings] = params[:ratings]
-      else
-      #If there are not ratings on params, we see if there are in session
-        if session[:ratings] then
-          #If there are ratings on session, we should redirect and a new URI should be generated
-          session_parameters[:ratings] = session[:ratings]
-        ratings_redirect = true
-        end
-      end
-
-      #Check for sorting on params
-      if params[:sort] then
-        #If there is a sort instruction on params, we put it in session
-        session[:sort] = params[:sort]
-      else
-      #If there isn't a sort instruction on params, see if there's one in session
-        if session[:sort] then
-          #If there is a sort instruction on session, we should redirect and a new URI should be generated
-          #debugger
-          session_parameters[:sort] = session[:sort]
-        sort_redirect = true
-        #If there is no sort on session either, nothing else should be done
-        end
-      end
-
-      #If there is a redirect instruction, it should be processed
-      if ratings_redirect || sort_redirect then
-        #building the params instruction
-        params_string = "\?redir=1"
-        if session_parameters[:ratings] then
-          debugger
-          session_parameters[:ratings].each { |selected_rating| params_string << "\&ratings&[" << selected_rating << "&]=1" }
-        end
-        if session_parameters[:sort] then
-          params_string << "\&sort=" << session_parameters[:sort]
-        end
-      self_redirect = true
-      end
-
-      #redirecting if needed
-      if self_redirect then
-        flash.keep
-        redirect_to movies_path << params_string
-      end
-    end
+    self_redirect = false
 
     unless params[:ratings]==nil then
       #Variable for handling ratings filtering
@@ -76,28 +21,62 @@ class MoviesController < ApplicationController
       end
       #saving :ratings on the session hash
       session[:ratings] =  params[:ratings]
+    else
+    #If there is no :ratings on params, we'll check session
+      if session[:ratings] != nil then
+        #We construct a params string for redirecting
+        params_string = "\?redir=1"
+        session[:ratings].keys.each { |selected_rating| params_string << "\&ratings[" << selected_rating << "]=1" }
+        session.delete(:ratings)
+      self_redirect = true
+      end
     end
 
     #Header sorting and css formatting logic
     @title_header_class=nil
     @release_date_header_class=nil
 
-    case params[:sort]
-    when "title"
-      @order_string = "title ASC"
-      session[:sort] = params[:sort]
-      #@movies = Movie.all(:order => "title ASC")
-      @title_header_class = "hilite"
-    when "release"
-      @order_string = "release_date ASC"
-      session[:sort] = params[:sort]
-      #@movies = Movie.all(:order => "release_date ASC")
-      @release_date_header_class = "hilite"
+    if params[:sort] != nil then
+      case params[:sort]
+      when "title"
+        @order_string = "title ASC"
+        session[:sort] = params[:sort]
+        #@movies = Movie.all(:order => "title ASC")
+        @title_header_class = "hilite"
+      when "release"
+        @order_string = "release_date ASC"
+        session[:sort] = params[:sort]
+        #@movies = Movie.all(:order => "release_date ASC")
+        @release_date_header_class = "hilite"
+      else
+      #@movies = Movie.all
+      session[:sort] = "none"
+      @order_string = ""
+      end
+
     else
-    #@movies = Movie.all
-    session[:sort] = "none"
-    @order_string = ""
+    #If there is no sort on params we check session
+      if session[:sort] != nil then
+        #We check if there's a params string already built and complete it
+        if params_string == nil then
+          params_string = "\?redir=1"
+        end
+        #Adding the sorting instruction to the params string
+        params_string << "\&sort=" << session[:sort]
+        session.delete(:sort)
+        if params[:ratings] != nil then
+          params[:ratings].keys.each { |selected_rating| params_string << "\&ratings[" << selected_rating << "]=1" }
+          session[:ratings] = params[:ratings]
+        end
+      self_redirect =true
+      end
     end
+
+    if self_redirect
+      flash.keep
+      redirect_to movies_path << params_string
+    end
+
     @movies = Movie.find(:all,:order => @order_string, :conditions => {:rating => @rating_where_clause})
   end
 
