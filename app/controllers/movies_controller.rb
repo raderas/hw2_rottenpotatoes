@@ -49,9 +49,9 @@ class MoviesController < ApplicationController
       #If there is a redirect instruction, it should be processed
       if ratings_redirect || sort_redirect then
         #building the params instruction
-        debugger
         params_string = "\?redir=1"
         if session_parameters[:ratings] then
+          debugger
           session_parameters[:ratings].each { |selected_rating| params_string << "\&ratings&[" << selected_rating << "&]=1" }
         end
         if session_parameters[:sort] then
